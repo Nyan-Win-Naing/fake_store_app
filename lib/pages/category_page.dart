@@ -1,64 +1,73 @@
+import 'dart:io';
+
+import 'package:fake_store_app/blocs/category_bloc.dart';
 import 'package:fake_store_app/resources/colors.dart';
 import 'package:fake_store_app/resources/dimens.dart';
 import 'package:fake_store_app/viewitems/category_view.dart';
+import 'package:fake_store_app/widgets/add_category_button_view.dart';
 import 'package:fake_store_app/widgets/form_style_view.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 class CategoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        elevation: 0,
+    return ChangeNotifierProvider(
+      create: (context) => CategoryBloc(),
+      child: Scaffold(
         backgroundColor: Colors.white,
-        leadingWidth: 200,
-        leading: Padding(
-          padding: const EdgeInsets.only(
-              top: MARGIN_MEDIUM_2, left: MARGIN_MEDIUM_2),
-          child: Text(
-            "Category",
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: TEXT_HEADING_1X,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      ),
-      body: Stack(
-        children: [
-          Container(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  GridView.builder(
-                    padding: EdgeInsets.only(
-                        left: MARGIN_MEDIUM_2, top: MARGIN_MEDIUM_2),
-                    physics: NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: 10,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, childAspectRatio: 1),
-                    itemBuilder: (context, index) {
-                      return CategoryView();
-                    },
-                  ),
-                ],
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          backgroundColor: Colors.white,
+          leadingWidth: 200,
+          leading: Padding(
+            padding: const EdgeInsets.only(
+                top: MARGIN_MEDIUM_2, left: MARGIN_MEDIUM_2),
+            child: Text(
+              "Category",
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: TEXT_HEADING_1X,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: GestureDetector(
-              onTap: () {
-                showAddCategoryDialog(context);
-              },
-              child: AddNewCategoryButtonSectionView(),
+        ),
+        body: Stack(
+          children: [
+            Container(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    GridView.builder(
+                      padding: EdgeInsets.only(
+                          left: MARGIN_MEDIUM_2, top: MARGIN_MEDIUM_2),
+                      physics: NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: 10,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, childAspectRatio: 1),
+                      itemBuilder: (context, index) {
+                        return CategoryView();
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
+            Align(
+              alignment: Alignment.bottomRight,
+              child: GestureDetector(
+                onTap: () {
+                  showAddCategoryDialog(context);
+                },
+                child: AddNewCategoryButtonSectionView(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -77,7 +86,8 @@ class CategoryPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: MARGIN_MEDIUM_2),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: MARGIN_MEDIUM_2),
                 child: Text(
                   "Add Category",
                   style: TextStyle(
@@ -96,7 +106,8 @@ class CategoryPage extends StatelessWidget {
               CategoryImageChooseView(),
               SizedBox(height: MARGIN_MEDIUM_3),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: MARGIN_MEDIUM_2),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: MARGIN_MEDIUM_2),
                 child: Row(
                   children: [
                     AddCategoryButtonView(
@@ -127,44 +138,11 @@ class CategoryPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return alert;
+        return ChangeNotifierProvider(
+          create: (context) => CategoryBloc(),
+          child: alert,
+        );
       },
-    );
-  }
-}
-
-class AddCategoryButtonView extends StatelessWidget {
-  final String label;
-  final Color backgroundColor;
-  final Color textColor;
-  final Function onTap;
-
-  AddCategoryButtonView({
-    this.label,
-    this.backgroundColor,
-    this.textColor,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      flex: 1,
-      child: RaisedButton(
-        onPressed: () {
-          this.onTap();
-        },
-        color: backgroundColor,
-        elevation: 0,
-        child: Text(
-          label,
-          style: TextStyle(
-            color: textColor,
-            fontSize: TEXT_REGULAR_2X,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
     );
   }
 }
@@ -190,16 +168,65 @@ class CategoryImageChooseView extends StatelessWidget {
           ),
         ),
         SizedBox(height: MARGIN_MEDIUM_2),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: MARGIN_MEDIUM_2),
-          width: 90,
-          height: 90,
-          color: SECONDARY_COLOR,
-          child: Icon(
-            Icons.image,
-            size: MARGIN_XLARGE,
-            color: Colors.white,
-          ),
+        Selector<CategoryBloc, File>(
+          selector: (context, bloc) => bloc.chosenImageFile,
+          builder: (context, chosenImageFile, child) => (chosenImageFile ==
+                  null)
+              ? GestureDetector(
+                  onTap: () async {
+                    final ImagePicker _picker = ImagePicker();
+
+                    /// Pick an image
+                    final PickedFile image =
+                        await _picker.getImage(source: ImageSource.gallery);
+                    if (image != null) {
+                      var bloc =
+                          Provider.of<CategoryBloc>(context, listen: false);
+                      bloc.onImageChosen(File(image.path));
+                    }
+                  },
+                  child: Container(
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: MARGIN_MEDIUM_2),
+                    width: 90,
+                    height: 90,
+                    color: SECONDARY_COLOR,
+                    child: Icon(
+                      Icons.image,
+                      size: MARGIN_XLARGE,
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              : Container(
+                  margin: EdgeInsets.symmetric(horizontal: MARGIN_MEDIUM_2),
+                  width: 90,
+                  height: 90,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: Image.file(
+                          chosenImageFile ?? File(""),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: GestureDetector(
+                          onTap: () {
+                            var bloc = Provider.of<CategoryBloc>(context,
+                                listen: false);
+                            bloc.onTapDeleteImage();
+                          },
+                          child: Icon(
+                            Icons.close,
+                            color: Colors.blueGrey,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
         ),
       ],
     );

@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:fake_store_app/dummy/profile_function_vo.dart';
-import 'package:fake_store_app/pages/add_post_page.dart';
+import 'package:fake_store_app/pages/add_product_page.dart';
 import 'package:fake_store_app/resources/colors.dart';
 import 'package:fake_store_app/resources/dimens.dart';
 import 'package:fake_store_app/widgets/form_style_view.dart';
@@ -21,7 +21,7 @@ class ProfileFunctionView extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => AddPostPage(),
+            builder: (context) => AddProductPage(),
           ),
         );
       },
